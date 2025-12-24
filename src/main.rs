@@ -108,7 +108,11 @@ impl Solution {
             }
         }
 
-        if board_letter_count.get(&word_characters[0]).unwrap()>board_letter_count.get(&word_characters[word_characters.len()-1]).unwrap(){
+        if board_letter_count.get(&word_characters[0]).unwrap()
+            > board_letter_count
+                .get(&word_characters[word_characters.len() - 1])
+                .unwrap()
+        {
             word_characters.reverse();
         }
 
@@ -159,5 +163,91 @@ impl Solution {
         }
         board[row as usize][column as usize] = previous_character;
         false
+    }
+}
+impl Solution {
+    pub fn find_anagrams(s: String, p: String) -> Vec<i32> {
+        let s: Vec<char> = s.chars().collect();
+        let p: Vec<char> = p.chars().collect();
+        let p_len = p.len();
+        let s_len = s.len();
+        if p_len > s_len {
+            return vec![];
+        }
+        let mut pos_anagram = Vec::new();
+        let mut original_map = HashMap::new();
+
+        for letter in p {
+            original_map
+                .entry(letter)
+                .and_modify(|counter| *counter += 1)
+                .or_insert(1);
+        }
+
+        let mut s_map = HashMap::new();
+
+        for letter in &s[0..p_len] {
+            s_map
+                .entry(*letter)
+                .and_modify(|counter| *counter += 1)
+                .or_insert(1);
+        }
+        if Solution::simple_anagram(&s_map, &original_map) {
+            pos_anagram.push(0);
+        }
+        for i in p_len..s_len {
+            if Solution::is_anagram(&mut s_map, s[i], s[i - p_len], &original_map) {
+                pos_anagram.push((i - (p_len - 1)) as i32);
+            }
+        }
+        pos_anagram
+    }
+    pub fn simple_anagram(part_map: &HashMap<char, i32>, original: &HashMap<char, i32>) -> bool {
+        for (key, value) in original {
+            match part_map.get(key) {
+                Some(count) => {
+                    if *count != *value {
+                        return false;
+                    }
+                }
+                None => {
+                    return false;
+                }
+            }
+        }
+        true
+    }
+    pub fn is_anagram(
+        part_map: &mut HashMap<char, i32>,
+        incoming: char,
+        outgoing: char,
+        original: &HashMap<char, i32>,
+    ) -> bool {
+        match part_map.get_mut(&outgoing) {
+            Some(count) => {
+                *count -= 1;
+            }
+            None => {
+                return false;
+            }
+        }
+        part_map
+            .entry(incoming)
+            .and_modify(|count| *count += 1)
+            .or_insert(1);
+
+        for (key, value) in original {
+            match part_map.get(key) {
+                Some(count) => {
+                    if *count != *value {
+                        return false;
+                    }
+                }
+                None => {
+                    return false;
+                }
+            }
+        }
+        true
     }
 }
