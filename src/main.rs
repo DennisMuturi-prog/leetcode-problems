@@ -1,4 +1,4 @@
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 
 fn main() {
     println!("Hello, world {}!", 'z' as usize);
