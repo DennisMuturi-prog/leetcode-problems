@@ -1,4 +1,8 @@
-use std::collections::HashMap;
+use std::{
+    cmp::min,
+    collections::{HashMap, HashSet, VecDeque},
+    i32,
+};
 
 fn main() {
     println!("Hello, world {}!", 'z' as usize);
@@ -249,5 +253,80 @@ impl Solution {
             }
         }
         true
+    }
+}
+
+impl Solution {
+    pub fn find_min_height_trees(n: i32, edges: Vec<Vec<i32>>) -> Vec<i32> {
+        if n==1{
+            return vec![0];
+        }
+        let mut n=n;
+        
+        let mut edge_count=vec![0;n as usize];
+        let adjacent_list=Solution::create_adjacency_list(n as usize,edges);
+        let mut labels=Vec::new();
+        let mut leaves=VecDeque::new();
+        for (label,neighbors) in adjacent_list.iter().enumerate(){
+            let neighbors_count=neighbors.len();
+            if neighbors_count==1{
+                leaves.push_back(label as i32);
+            }
+            edge_count[label]=neighbors_count;
+            
+        }
+        while !leaves.is_empty(){
+            if n<=2{
+                labels.extend(leaves.iter());
+                return labels;
+                
+            }
+            for _ in 0..leaves.len(){
+                n-=1;
+                let node=leaves.pop_front().unwrap();
+                let neighbours=&adjacent_list[node as usize];
+                for neighbor in neighbours{
+                    edge_count[*neighbor as usize]-=1;
+                    if edge_count[*neighbor as usize]==1{
+                        leaves.push_back(*neighbor);
+                    }
+                }
+            }
+        }
+        
+
+        labels
+    }
+    fn create_adjacency_list(n:usize,edges: Vec<Vec<i32>>) -> Vec<Vec<i32>> {
+        let mut adjacency_list = vec![vec![];n];
+        for edge in edges{
+            adjacency_list[edge[0] as usize].push(edge[1]);
+            adjacency_list[edge[1] as usize].push(edge[0]);
+        }
+        adjacency_list
+    }
+    fn bfs(root: i32, adjacency_list: &HashMap<i32, Vec<i32>>,minimum:&i32) -> i32 {
+        let mut height = 0;
+        let mut queue = VecDeque::new();
+        let mut seen=HashSet::new();
+        queue.push_back(root);
+        while !queue.is_empty() {
+            let current_len = queue.len();
+            for _ in 0..current_len {
+                let current_item = queue.pop_front().unwrap();
+                seen.insert(current_item);
+                let neighbours = adjacency_list.get(&current_item).unwrap();
+                for neighbour in neighbours {
+                    if !seen.contains(neighbour) {
+                        queue.push_back(*neighbour);
+                    }
+                }
+            }
+            height += 1;
+            if height>*minimum{
+                return i32::MAX;
+            }
+        }
+        height
     }
 }
